@@ -1,3 +1,4 @@
+#main.py
 # 导入 FastAPI 框架，用于创建 API 应用
 from fastapi import FastAPI, Depends, HTTPException
 # 导入 SQLAlchemy 的 Session 类，用于数据库会话
@@ -20,26 +21,37 @@ app = FastAPI()
 
 
 # --------------------- 用户相关 API --------------------- #
+#@app.post("/users/")：这是 FastAPI 的路由装饰器，它将这个 create_new_user 函数绑定到 /users/ 这个 POST 请求的路径上。
+# 也就是说，当客户端向这个路径发送一个 POST 请求时，这个函数就会被调用。
+# response_model=schemas.User：指定返回响应的格式为 schemas.User，
+# 也就是说，API 会返回一个符合 schemas.User 格式的数据对象，
+# FastAPI 会自动将 Python 对象转换为 JSON 格式返回给前端。
+# def create_new_user(user: schemas.UserCreate, db: Session = Depends(get_db))：这是定义的视图函数，它接受两个参数：
+# user: schemas.UserCreate：通过请求体传入的用户数据，FastAPI 会自动验证这些数据是否符合 schemas.UserCreate 的格式。
+# db: Session = Depends(get_db)：db 是一个数据库会话对象，Depends(get_db) 表示 FastAPI 会自动调用 get_db 函数，
+# 获取一个数据库会话对象 db，用于执行数据库操作。
+# user: schemas.UserCreate:
+# user is a parameter (or variable), and schemas.UserCreate is its data type, 
+# indicating that user should be of type schemas.UserCreate.
+# schemas.UserCreate is a Pydantic model that defines the structure of the data required to create a new user, such as fields like username, password, and email.
+# db: Session = Depends(get_db):
+# db is a parameter with the data type Session, which represents a database session object.
+# Session is a class from SQLAlchemy used for performing database operations, such as queries and inserts.
+# Depends(get_db) is a mechanism in FastAPI that automatically calls the get_db function to provide a database session and assigns it to the db parameter.
+# In Python, the syntax xx: yy is known as type annotation. It is used to specify the data type of a variable, parameter, or return value.
+# def add(a: int, b: int) -> int:
 
 @app.post("/users/", response_model=schemas.User)
 def create_new_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
-    创建新用户的 API 路由
-    - 接收请求体中的数据（必须符合 schemas.UserCreate 的格式）
-    - 电脑调用 crud.create_user() 函数，把数据写入数据库
-    - 最后返回创建的新用户对象，自动转换为 JSON 格式响应
+    API route for creating a new user
     """
-    db_user = crud.create_user(db, user)  # 在数据库中创建用户，并返回该用户对象
-    return db_user  # 返回用户对象给前端
+    db_user = crud.create_user(db, user)  
+    return db_user  
 
 @app.get("/users/{user_id}", response_model=schemas.User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
-    """
-    根据用户 ID 获取用户信息的 API 路由
-    - 参数 user_id 来自 URL 路径，电脑用它在数据库中查询对应用户
-    - 如果找不到则返回 404 错误
-    - 如果找到则返回用户数据
-    """
+
     db_user = crud.get_user(db, user_id)  # 电脑查询数据库，找到第一个匹配的用户
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -48,10 +60,13 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 @app.get("/users/", response_model=List[schemas.User])
 def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     """
-    获取多个用户信息，支持分页
-    - skip 表示跳过前面的多少条记录
-    - limit 表示最多返回多少条记录
-    - 电脑查询数据库，根据分页条件返回用户列表
+    获取多个用户信息，支持分页（Pagination）
+    - skip=0 表示從第一條數據開始
+    - skip=10 表示跳過前 10 條數據，從第 11 條數據開始。
+    - 例如，limit=10 表示每次最多返回 10 条记录。
+    - 所以如果你请求 /users?skip=10&limit=10，你会得到第 11 到第 20 条用户数据。
+    - 例子：read_users(skip=0, limit=10)，它只会返回 从第 1 条到第 10 条数据
+    - 第二次请求 /users?skip=10&limit=10 会返回 第 11 到第 20 条数据。（用loop）
     """
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
@@ -60,9 +75,6 @@ def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 def remove_user(user_id: int, db: Session = Depends(get_db)):
     """
     删除用户的 API 路由
-    - 电脑通过用户 ID 查询到数据库中的用户记录
-    - 如果存在，则删除该记录并提交事务
-    - 返回被删除的用户数据
     """
     db_user = crud.delete_user(db, user_id)
     if not db_user:
@@ -77,8 +89,6 @@ def create_new_currency_pair(currency_pair: schemas.CurrencyPairCreate, db: Sess
     """
     创建币对记录的 API 路由
     - 接收币对数据（例如 "BTCUSDT"），数据格式必须符合 schemas.CurrencyPairCreate
-    - 电脑调用 crud.create_currency_pair() 将币对写入数据库
-    - 返回创建成功的币对记录
     """
     db_currency_pair = crud.create_currency_pair(db, currency_pair)
     return db_currency_pair
@@ -87,8 +97,6 @@ def create_new_currency_pair(currency_pair: schemas.CurrencyPairCreate, db: Sess
 def read_currency_pair(pair: str, db: Session = Depends(get_db)):
     """
     根据币对名称获取币对记录的 API 路由
-    - 参数 pair 为币对名称，例如 "BTCUSDT"
-    - 电脑查询数据库，如果币对不存在则返回 404，否则返回币对数据
     """
     db_currency_pair = crud.get_currency_pair(db, pair)
     if not db_currency_pair:
@@ -120,9 +128,7 @@ def create_new_user_currency_pair(user_id: int, user_currency_pair: schemas.User
     """
     创建用户币对选择记录的 API 路由
     - 参数 user_id 来自 URL，标识哪个用户
-    - 请求体中的数据必须符合 schemas.UserCurrencyPairCreate 格式
-    - 电脑调用 crud.create_user_currency_pair() 把用户选择的币对和交易所写入数据库
-    - 返回创建成功的记录
+    - post必须符合 schemas.UserCurrencyPairCreate 格式
     """
     db_ucp = crud.create_user_currency_pair(db, user_currency_pair, user_id)
     return db_ucp
@@ -131,8 +137,6 @@ def create_new_user_currency_pair(user_id: int, user_currency_pair: schemas.User
 def read_user_currency_pairs(user_id: int, db: Session = Depends(get_db)):
     """
     获取某个用户所有币对选择记录的 API 路由
-    - 参数 user_id 指明要查询哪个用户
-    - 电脑查询数据库，返回该用户所有的币对选择记录（列表）
     """
     db_ucps = crud.get_user_currency_pairs(db, user_id)
     return db_ucps
@@ -154,9 +158,6 @@ def update_exchanges(user_id: int, currency_pair_id: int, update_data: schemas.U
 def delete_user_currency_pair_endpoint(user_id: int, currency_pair_id: int, db: Session = Depends(get_db)):
     """
     删除用户币对选择记录的 API 路由
-    - 参数 user_id 和 currency_pair_id 确定要删除的记录
-    - 电脑调用 crud.delete_user_currency_pair() 删除对应记录并提交事务
-    - 如果记录不存在，返回 404 错误；否则返回删除的记录数据
     """
     deleted_ucp = crud.delete_user_currency_pair(db, user_id, currency_pair_id)
     if not deleted_ucp:

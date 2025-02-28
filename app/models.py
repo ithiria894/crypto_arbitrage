@@ -1,3 +1,4 @@
+#models.py
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -40,3 +41,12 @@ class UserCurrencyPair(Base):
     # 建立双向关系
     user = relationship("User", back_populates="currency_pairs")
     currency_pair = relationship("CurrencyPair", back_populates="users")
+
+
+# 你可能會問： 🤔 為什麼 UserCurrencyPair 已經有 ForeignKey 了，還要加 relationship？
+# 📌 ForeignKey 只是告訴 SQLAlchemy 這個欄位關聯了哪個表的哪個欄位（只是個 ID）。
+# 📌 relationship 則是讓 SQLAlchemy 自動查詢關聯表的完整對象！
+
+# user = db.query(User).filter(User.id == 1).first()
+# for line in user.currency_pairs:
+#     print(line.currency_pair.pair, line.selected_exchanges)

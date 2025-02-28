@@ -1,4 +1,4 @@
-from get_mexc import get_mexc_price, get_mexc_fees
+# from get_mexc import get_mexc_price, get_mexc_fees
 from get_bitget import get_bitget_price, get_bitget_fees
 from get_upbit import get_upbit_price, get_upbit_fees
 from get_binanceus import get_binance_us_price, get_binanceus_fees
@@ -6,13 +6,13 @@ from get_binanceus import get_binance_us_price, get_binanceus_fees
 # Function to get prices from all exchanges
 
 def get_prices(symbol):
-    mexc_price = float(get_mexc_price(symbol))
+    # mexc_price = float(get_mexc_price(symbol))
     bitget_price = float(get_bitget_price(symbol))
     upbit_price = float(get_upbit_price(f"USDT-{symbol.split('USDT')[0]}"))  
     binanceus_price = float(get_binance_us_price(symbol))
     
     return {
-        "MEXC": mexc_price,
+        # "MEXC": mexc_price,
         "Bitget": bitget_price,
         "Upbit": upbit_price,
         "BinanceUS": binanceus_price
@@ -22,9 +22,9 @@ def get_price_for_exchange(symbol: str, exchange: str):
     """针对单个交易所获取价格"""
     formatted_symbol = format_symbol_for_exchange(symbol, exchange)
     try:
-        if exchange == "MEXC":
-            return float(get_mexc_price(formatted_symbol))
-        elif exchange == "Bitget":
+        # if exchange == "MEXC":
+            # return float(get_mexc_price(formatted_symbol))
+        if exchange == "Bitget":
             return float(get_bitget_price(formatted_symbol))
         elif exchange == "Upbit":
             return float(get_upbit_price(formatted_symbol))
@@ -42,13 +42,13 @@ def format_symbol_for_exchange(symbol: str, exchange: str) -> str:
 
 # Function to get fees from all exchanges
 def get_fees():
-    mexc_mk, mexc_tk = get_mexc_fees()
+    # mexc_mk, mexc_tk = get_mexc_fees()
     bitget_mk, bitget_tk = get_bitget_fees()
     upbit_mk, upbit_tk = get_upbit_fees()
     binanceus_mk, binanceus_tk = get_binanceus_fees()
 
     return {
-        "MEXC": mexc_tk,
+        # "MEXC": mexc_tk,
         "Bitget": bitget_tk,
         "Upbit": upbit_tk,
         "BinanceUS": binanceus_tk
