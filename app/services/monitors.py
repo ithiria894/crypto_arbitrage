@@ -19,7 +19,7 @@ def get_prices(symbol):
     }
 
 def get_price_for_exchange(symbol: str, exchange: str):
-    """针对单个交易所获取价格"""
+    """Get price for a single exchange"""
     formatted_symbol = format_symbol_for_exchange(symbol, exchange)
     try:
         # if exchange == "MEXC":
@@ -34,7 +34,7 @@ def get_price_for_exchange(symbol: str, exchange: str):
         return None
     
 def format_symbol_for_exchange(symbol: str, exchange: str) -> str:
-    """处理各交易所的符号格式差异"""
+    """Handle symbol format differences for each exchange"""
     if exchange == "Upbit":
         return f"USDT-{symbol.replace('USDT', '')}"
     return symbol

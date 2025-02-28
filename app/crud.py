@@ -1,12 +1,12 @@
 #crud.py
 from sqlalchemy.orm import Session
-from app import models, schemas  # 直接导入models和schemas
+from app import models, schemas  
 from typing import Optional
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
-# ========== 用户相关的 CRUD 操作 ========== #
+
 def create_user(db: Session, user: schemas.UserCreate):
-    """ 在数据库中创建一个新用户 """
+    """ Create a new user in the database """
     db_user = models.User(telegram_id=user.telegram_id, username=user.username)
     try:
         db.add(db_user)
@@ -14,33 +14,31 @@ def create_user(db: Session, user: schemas.UserCreate):
         db.refresh(db_user) #refresh so db_user can get from the db then to return
     except IntegrityError:
         db.rollback()
-        # 如果發生錯誤（例如，資料庫中已經有相同的 telegram_id），
-        # rollback() 會撤銷所有已經進行的更改，
-        # 使數據庫恢復到執行 commit() 之前的狀態
+
         raise HTTPException(status_code=422, detail="Telegram ID already exists")
     return db_user
 
 def get_user(db: Session, user_id: int):
-    """ 通过 ID 获取用户 """
-    return db.query(models.User).filter(models.User.id == user_id).first()  # 只取第一个匹配的用户
+    """ Get user by ID """
+    return db.query(models.User).filter(models.User.id == user_id).first()  
 
 def get_users(db: Session, skip: int = 0, limit: int = 10):
-    """ 获取多个用户，支持分页 """
+    """ Get multiple users, supports pagination """
     return db.query(models.User).offset(skip).limit(limit).all()
 
 def delete_user(db: Session, user_id: int):
-    """ 通过 ID 删除用户 """
+    """ Delete user by ID """
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if db_user:
-        db.delete(db_user)  # 从数据库删除用户
-        db.commit()  # 提交事务
-    return db_user  # 返回被删除的用户
+        db.delete(db_user)  
+        db.commit()  
+    return db_user  
 
 
-# ========== 币对相关的 CRUD 操作 ========== #
+# ========== Currency Pair-related CRUD Operations ========== #
 
 def create_currency_pair(db: Session, currency_pair: schemas.CurrencyPairCreate):
-    """ 在数据库中创建一个新的币对 """
+    """ Create a new currency pair in the database """
     try:
         db_currency_pair = models.CurrencyPair(pair=currency_pair.pair)
         db.add(db_currency_pair)
@@ -52,15 +50,15 @@ def create_currency_pair(db: Session, currency_pair: schemas.CurrencyPairCreate)
     return db_currency_pair
 
 def get_currency_pair(db: Session, pair: str):
-    """ 通过币对名称查找币对 """
+    """ Find currency pair by name """
     return db.query(models.CurrencyPair).filter(models.CurrencyPair.pair == pair).first()
 
 def get_all_currency_pairs(db: Session):
-    """获取所有币对"""
+    """ Get all currency pairs """
     return db.query(models.CurrencyPair).all()
 
 def delete_currency_pair(db: Session, pair: str):
-    """ 通过币对名称删除币对 """
+    """ Delete currency pair by name """
     db_currency_pair = db.query(models.CurrencyPair).filter(models.CurrencyPair.pair == pair).first()
     if db_currency_pair:
         db.delete(db_currency_pair)
@@ -68,10 +66,10 @@ def delete_currency_pair(db: Session, pair: str):
     return db_currency_pair
 
 
-# ========== 用户币对选择（UserCurrencyPair）相关的 CRUD 操作 ========== #
+# ========== User Currency Pair Selection (UserCurrencyPair) related CRUD Operations ========== #
 
 def create_user_currency_pair(db: Session, user_currency_pair: schemas.UserCurrencyPairCreate, user_id: int):
-    """ 用户选择某个币对并指定要监控的交易所 """
+    """ User selects a currency pair and specifies exchanges to monitor """
     db_user_currency_pair = models.UserCurrencyPair(
         user_id=user_id,
         currency_pair_id=user_currency_pair.currency_pair_id,
@@ -83,19 +81,19 @@ def create_user_currency_pair(db: Session, user_currency_pair: schemas.UserCurre
     return db_user_currency_pair
 
 def get_user_currency_pairs(db: Session, user_id: int):
-    """ 获取用户选择的所有币对 """
+    """ Get all currency pairs selected by the user """
     return db.query(models.UserCurrencyPair).filter(models.UserCurrencyPair.user_id == user_id).all()
 
 def update_user_currency_pair(
     db: Session,
     user_id: int,
     currency_pair_id: int,
-    update_data: schemas.UserCurrencyPairUpdate  # 接收更新数据
+    update_data: schemas.UserCurrencyPairUpdate  # Receive update data
 ):
     """
-    更新用户对于某个币对的交易所选择：
-      - 如果 new_exchanges 提供，则直接替换整个字段；
-      - 否则可以通过 exchange_to_remove 或 exchange_to_add 更新现有值。
+    Update user's exchange selection for a currency pair:
+      - If new_exchanges is provided, directly replace the entire field;
+      - Otherwise, update existing values through exchange_to_remove or exchange_to_add.
     """
     db_ucp = db.query(models.UserCurrencyPair).filter(
         models.UserCurrencyPair.user_id == user_id,
@@ -103,24 +101,24 @@ def update_user_currency_pair(
     ).first()
 
     if not db_ucp:
-        return None  # 或抛出异常
+        return None  # or raise an exception
 
-    # 如果传入 new_exchanges，则直接替换整个字段
+    # If new_exchanges is provided, directly replace the entire field
     if update_data.new_exchanges is not None:
         db_ucp.selected_exchanges = update_data.new_exchanges.strip()
     else:
-        # 分割当前的交易所字符串为列表
+        # Split the current exchange string into a list
         exchanges = [ex.strip() for ex in db_ucp.selected_exchanges.split(',') if ex.strip()]
         
-        # 删除指定的交易所
+        # Remove the specified exchange
         if update_data.exchange_to_remove:
             exchanges = [ex for ex in exchanges if ex.lower() != update_data.exchange_to_remove.lower()]
         
-        # 添加新的交易所（避免重复）
+        # Add new exchange (avoid duplicates)
         if update_data.exchange_to_add and update_data.exchange_to_add.lower() not in [ex.lower() for ex in exchanges]:
             exchanges.append(update_data.exchange_to_add.strip())
         
-        # 更新字段：用逗号分隔的字符串
+        # Update field: comma-separated string
         db_ucp.selected_exchanges = ','.join(exchanges)
     
     db.commit()
@@ -129,7 +127,7 @@ def update_user_currency_pair(
 
 
 def delete_user_currency_pair(db: Session, user_id: int, currency_pair_id: int):
-    """ 删除用户选择的某个币对 """
+    """ Delete a user's selected currency pair """
     db_user_currency_pair = db.query(models.UserCurrencyPair).filter(
         models.UserCurrencyPair.user_id == user_id,
         models.UserCurrencyPair.currency_pair_id == currency_pair_id
@@ -151,11 +149,11 @@ def get_currency_pair_by_id(db: Session, currency_pair_id: int):
 # get_user_currency_pairs_with_details
 
 def get_user_currency_pairs_with_details(db: Session, user_id: int):
-    """ 获取用户监控列表（包含币对名称） """
+    """ Get user's monitoring list (including currency pair names) """
     return (
         db.query(
-            models.CurrencyPair.pair,                    # 币对名称
-            models.UserCurrencyPair.selected_exchanges  # 选择的交易所
+            models.CurrencyPair.pair,                    # Currency pair name
+            models.UserCurrencyPair.selected_exchanges  # Selected exchanges
         )
         .join(models.UserCurrencyPair, models.CurrencyPair.id == models.UserCurrencyPair.currency_pair_id)
         .filter(models.UserCurrencyPair.user_id == user_id)

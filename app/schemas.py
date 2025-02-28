@@ -4,47 +4,47 @@ from typing import List, Optional
 
 
 
-class UserCurrencyPairBase(BaseModel): #for check type
+class UserCurrencyPairBase(BaseModel): # for checking type
     currency_pair_id: int
-    selected_exchanges: str  # 存储用户选择的交易所，逗号分隔的字符串
+    selected_exchanges: str  # Stores the exchanges selected by the user, comma-separated string
 
-class UserCurrencyPairCreate(UserCurrencyPairBase): #for check type when create data(post)
+class UserCurrencyPairCreate(UserCurrencyPairBase): # for checking type when creating data (post)
     pass
 
 
-class UserCurrencyPair(UserCurrencyPairBase): #for check type when get data(get)
+class UserCurrencyPair(UserCurrencyPairBase): # for checking type when getting data (get)
     user_id: int
 
     class Config:
         orm_mode = True
-    # 使 Pydantic 可以通过 ORM 模型访问数据
-    # 為了讓 Pydantic 的模型可以兼容 SQLAlchemy ORM，
-    # 讓 FastAPI 在返回查詢結果時，能夠 自動轉換 SQLAlchemy 的對象為 Pydantic 的 dict。
+    # Allows Pydantic to access data through ORM models
+    # To make Pydantic models compatible with SQLAlchemy ORM,
+    # so that FastAPI can automatically convert SQLAlchemy objects to Pydantic dicts when returning query results.
 
 
 class UserCurrencyPairUpdate(BaseModel):
-    new_exchanges: Optional[str] = None          # 如果传入，则直接替换整个字符串
-    exchange_to_remove: Optional[str] = None       # 如果传入，则移除指定的交易所
-    exchange_to_add: Optional[str] = None          # 如果传入，则添加指定的交易所
+    new_exchanges: Optional[str] = None          # If provided, directly replace the entire string
+    exchange_to_remove: Optional[str] = None     # If provided, remove the specified exchange
+    exchange_to_add: Optional[str] = None        # If provided, add the specified exchange
 
     # class Config:
-    #     orm_mode = True #no need btc not for get
+    #     orm_mode = True # no need because not for get
 
 
 ##########################################################################################################
-#pydantic的功能：如果要求int但使用者發送 "12345"（字串），Pydantic 會自動轉換成 12345（整數）
+# Pydantic's feature: If an int is required but the user sends "12345" (string), Pydantic will automatically convert it to 12345 (integer)
 class UserBase(BaseModel): 
-    telegram_id: str= Field(...) #must be provided
+    telegram_id: str= Field(...) # must be provided
     # telegram_id: str = Field(..., min_length=5, max_length=20, description="User's Telegram ID")
-    username: str = "default_user"  # 設定預設值
+    username: str = "default_user"  # Set default value
     # username: str = Field(..., min_length=3, max_length=30, example="JohnDoe")
 
     # class Config: 
     #     orm_mode = True UserBase 
-    # UserBase 不需要 orm_mode = True，因為它不會直接用來返回 SQLAlchemy 物件。
+    # UserBase does not need orm_mode = True because it will not be directly used to return SQLAlchemy objects.
 
-    #property: 有時候你可能不想在資料庫中存儲某個欄位，而是動態計算出來
-    @property #你可以直接 user.username_uppercase 來獲取大寫的 username，而不需要存儲額外的欄位。
+    # property: Sometimes you may not want to store a field in the database, but calculate it dynamically
+    @property # You can directly use user.username_uppercase to get the uppercase username without storing an extra field.
     def username_uppercase(self):
         return self.username.upper()
 
@@ -52,37 +52,38 @@ class UserBase(BaseModel):
     # @field_validator("telegram_id","username") If username cannot be empty
     def not_empty(cls, v):
         if not v or v.strip() == "":
-            #not v：如果 v 為 None 或空字符串，這條條件會成立。
+            # not v: If v is None or an empty string, this condition will be true.
             raise ValueError("Field cannot be empty")
         return v
 
-class UserCreate(UserBase):#for check type when create data(post)
+class UserCreate(UserBase): # for checking type when creating data (post)
     pass
 
 
-class User(UserBase):#for check type when get data(get)，so need to add id
+class User(UserBase): # for checking type when getting data (get), so need to add id
     id: int
-    currency_pairs: List[UserCurrencyPair]  # 与该用户相关的所有币对选择的列表
+    currency_pairs: List[UserCurrencyPair]  # List of all currency pair selections related to the user
 
     class Config:
         orm_mode = True
+
 """
-舉例當我們從 API 查詢用戶 /users/123456，API 可能會返回這樣的 JSON:
+Example: When we query a user from the API /users/123456, the API might return a JSON like this:
 {
     "id": 1,
     "telegram_id": "123456",
     "username": "test_user",
     "currency_pairs": []
 }
-這個 JSON 就符合 User 的定義。
+This JSON matches the definition of User.
 """
 ##########################################################################################################
 # get_user_currency_pairs_with_details
 
 class UserCurrencyPairDetail(BaseModel):
-    """ 用于返回用户监控列表的详细信息 """
-    pair: str          # 币对名称（如 BTCUSDT）
-    exchanges: str     # 用户选择的交易所列表（逗号分隔）
+    """ Used to return detailed information of the user's monitoring list """
+    pair: str          # Currency pair name (e.g., BTCUSDT)
+    exchanges: str     # List of exchanges selected by the user (comma-separated)
 
     class Config:
         orm_mode = True
@@ -90,7 +91,7 @@ class UserCurrencyPairDetail(BaseModel):
 ##########################################################################################################
 
 class CurrencyPairBase(BaseModel):
-    pair: str  # 例如 "BTCUSDT"
+    pair: str  # e.g., "BTCUSDT"
 
     @field_validator("pair")
     def not_empty(cls, v):
@@ -104,7 +105,7 @@ class CurrencyPairCreate(CurrencyPairBase):
 
 class CurrencyPair(CurrencyPairBase):
     id: int
-    users: List[UserCurrencyPair]  # 与该币对相关的所有用户的列表
+    users: List[UserCurrencyPair]  # List of all users related to the currency pair
 
     class Config:
         orm_mode = True

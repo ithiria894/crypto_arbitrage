@@ -335,7 +335,7 @@ async def list_on_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Upbit": get_upbit_price(f"USDT-{pair}"),
             "BinanceUS": get_binance_us_price(pair),
             "Bitget": get_bitget_price(pair),
-            "MEXC": get_mexc_price(pair)
+            # "MEXC": get_mexc_price(pair)
         }
         
         fees = get_fees()

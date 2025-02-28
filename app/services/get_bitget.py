@@ -4,7 +4,7 @@ import requests
 def get_bitget_price(symbol="SNEKUSDT"):
     """
     
-    return sample：
+    return sample:
     {
         "symbol": "BTCUSDT",
         "lastPr": "34413.1",
@@ -26,14 +26,18 @@ def get_bitget_price(symbol="SNEKUSDT"):
         if result.get("code") == "00000" and "data" in result and len(result["data"]) > 0:
             ticker = result["data"][0]
             # Print the last price
+            # Print the last price
+
             # print(f"Symbol: {ticker.get('symbol')}")
+            # print(f"Symbol: {ticker.get('symbol')}")
+            # print(f"Last Price: {ticker.get('lastPr')}")
             # print(f"Last Price: {ticker.get('lastPr')}")
             return ticker.get('lastPr')
         else:
-            print("Bitget Spot API 错误:", result.get("msg"))
+            print("Bitget Spot API error:", result.get("msg"))
             return None
     except Exception as e:
-        print("获取 Bitget 现货行情数据时发生错误:", e)
+        print("Error occurred while fetching Bitget spot market data:", e)
         return None
     
 def get_bitget_fees():
