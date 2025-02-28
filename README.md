@@ -6,12 +6,6 @@ This application is a FastAPI-based service designed to manage users and their s
 
 This project was inspired by the observation of price discrepancies for cryptocurrencies across different exchanges. These price differences create arbitrage opportunities - the ability to profit by simultaneously buying an asset on one exchange where the price is lower and selling it on another exchange where the price is higher.
 
-Having more capital allows traders to:
-- Take advantage of larger arbitrage opportunities
-- Offset fixed costs like fees more effectively
-- Generate meaningful returns even from smaller price differences
-- Have more flexibility in position sizing
-
 ![Trump Arbitrage Example](trump.png)
 For example:
 - Exchange A might list TRUMPUSDT at $16
