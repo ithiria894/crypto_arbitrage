@@ -256,13 +256,3 @@ def test_read_user_mock():
         
         assert response.json()["telegram_id"] == "mocked"
 
-# Add default currency pairs to the database before tests
-@pytest.fixture(scope="module", autouse=True)
-def add_default_currency_pairs():
-    default_pairs = ["BTCUSDT", "ETHUSDT", "SNEKUSDT"]
-    for pair in default_pairs:
-        client.post("/currency_pairs/", json={"pair": pair})
-    yield
-    # Optionally, clean up these pairs after tests if needed
-    for pair in default_pairs:
-        client.delete(f"/currency_pairs/{pair}")
